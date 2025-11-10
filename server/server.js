@@ -1,18 +1,27 @@
-import 'dotenv/config'
-import express from 'express'
-import cors from 'cors'
-import connectDB from './configs/mongodb.js'
-import userRouter from './routes/userRoutes.js'
+import 'dotenv/config';
+import express from 'express';
+import cors from 'cors';
+import bodyParser from 'body-parser';
+import connectDB from './configs/mongodb.js';
+import userRouter from './routes/userRoutes.js';
 
-const PORT=process.env.PORT || 4000
-const app=express()
-await connectDB()
-//middlewares
+const PORT = process.env.PORT || 4000;
+const app = express();
 
-app.use(express.json())
-app.use(cors())
+// connect database
+await connectDB();
 
-//routes
-app.get("/",(req,res)=>res.send("API working"))
-app.use('/api/user',userRouter)
-app.listen(PORT,()=>console.log("Server running"))
+// middleware
+app.use(cors());
+
+// 🧩 IMPORTANT: raw body for Clerk webhooks
+app.use('/api/user/webhooks', bodyParser.raw({ type: 'application/json' }));
+
+// for everything else, use normal JSON parsing
+app.use(express.json());
+
+// routes
+app.get('/', (req, res) => res.send('API working'));
+app.use('/api/user', userRouter);
+
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
